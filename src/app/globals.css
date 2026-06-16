@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Global base styles. We keep the dark "trading terminal / sports analytics"
+   look consistent across every page here.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: #08090c; /* ink-950 */
+  color: #c7ccd6; /* ink-200 */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Thin, subtle scrollbars to match the terminal aesthetic (Chrome/Edge). */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0e13;
+}
+::-webkit-scrollbar-thumb {
+  background: #222734;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #323847;
+}
+
+/* A reusable faint grid background, used on the landing hero and session screens. */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 176, 32, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 176, 32, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* A soft amber glow used behind hero text and key numbers. */
+.accent-glow {
+  text-shadow: 0 0 24px rgba(255, 176, 32, 0.35);
+}
+
+/* Mirror the self-view video so it feels like a mirror, which is what users expect. */
+.mirror {
+  transform: scaleX(-1);
+}
