@@ -9,6 +9,9 @@ export default function SessionHud({
   onToggleDebug,
   onEnd,
   tellCount,
+  voiceOn,
+  onToggleVoice,
+  voiceSupported,
 }) {
   return (
     <div className="flex items-center justify-between border-b border-ink-800 px-2 pb-3">
@@ -22,6 +25,19 @@ export default function SessionHud({
       </div>
 
       <div className="flex items-center gap-2">
+        {voiceSupported && (
+          <button
+            onClick={onToggleVoice}
+            title={voiceOn ? "Mute opponent voice" : "Unmute opponent voice"}
+            className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
+              voiceOn
+                ? "border-accent text-accent"
+                : "border-ink-700 text-ink-400 hover:text-ink-200"
+            }`}
+          >
+            {voiceOn ? "🔊 Voice on" : "🔈 Voice off"}
+          </button>
+        )}
         <button
           onClick={onToggleDebug}
           className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${

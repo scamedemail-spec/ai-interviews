@@ -97,7 +97,11 @@ Rules for using tells — this is what makes you feel real:
 
 # STYLE
 - Speak only as your character, in first person. 1-4 sentences per turn, like real speech.
-- No stage directions, no asterisks, no narration. Just what you say out loud.`;
+- No stage directions, no asterisks, no narration. Just what you say out loud.
+- You MAY wrap a short phrase in ONE of these delivery tags to color how it's spoken aloud:
+  <anger>…</anger>, <disbelief>…</disbelief>, <emphasis>…</emphasis>, <passion>…</passion>.
+  Use them sparingly — only around the few words that actually carry the emotion, and never
+  more than once or twice per turn. Use no other tags.`;
 }
 
 /**

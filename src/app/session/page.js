@@ -15,6 +15,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/context/SessionContext";
 import { useBiometrics } from "@/lib/biometrics/useBiometrics";
+import {
+  OpponentVoice,
+  stripEmotionTags,
+  isSpeechSynthesisSupported,
+} from "@/lib/biometrics/voiceOutput";
 import VideoFeed from "@/components/session/VideoFeed";
 import Calibration from "@/components/session/Calibration";
 import ConversationPanel from "@/components/session/ConversationPanel";
@@ -69,6 +74,12 @@ export default function SessionPage() {
   const [opponentThinking, setOpponentThinking] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [showDebug, setShowDebug] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(() => isSpeechSynthesisSupported());
+
+  // The opponent's spoken voice (browser speech synthesis). Created once.
+  const voiceRef = useRef(null);
+  // Mirror of `listening` so async speech callbacks read the latest value.
+  const listeningRef = useRef(false);
 
   // Refs that the long-lived biometric callbacks and timers read/write without re-rendering.
   const convoRef = useRef([]); // mirror of the transcript for building API payloads
@@ -113,6 +124,39 @@ export default function SessionPage() {
     return () => bio.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Create the opponent voice once, and tear it down on unmount.
+  useEffect(() => {
+    voiceRef.current = new OpponentVoice();
+    return () => {
+      if (voiceRef.current) voiceRef.current.cancel();
+    };
+  }, []);
+
+  // Keep the voice's enabled flag and the listening mirror in sync with state.
+  useEffect(() => {
+    if (voiceRef.current) voiceRef.current.setEnabled(voiceOn);
+  }, [voiceOn]);
+  useEffect(() => {
+    listeningRef.current = listening;
+  }, [listening]);
+
+  // Speak an opponent line aloud. While the opponent talks we pause the user's mic so the
+  // synthesized voice isn't transcribed back as the user's own words; we resume after.
+  const speakOpponent = useCallback(
+    (rawText) => {
+      const voice = voiceRef.current;
+      if (!voice || !voiceOn) return;
+      const wasListening = listeningRef.current;
+      if (wasListening) bio.pauseTranscription();
+      voice.speak(rawText, {
+        onEnd: () => {
+          if (wasListening && listeningRef.current) bio.resumeTranscription();
+        },
+      });
+    },
+    [voiceOn, bio]
+  );
 
   // ── Step A: request permission + load models ────────────────────────────────
   async function handleEnable() {
@@ -174,9 +218,14 @@ export default function SessionPage() {
 
     // Seed the opponent's opening line so the conversation starts in character.
     if (persona?.openingLine) {
-      const opener = { role: "opponent", text: persona.openingLine, timestamp: "0:00" };
+      const opener = {
+        role: "opponent",
+        text: stripEmotionTags(persona.openingLine),
+        timestamp: "0:00",
+      };
       convoRef.current = [opener];
       addMessage(opener);
+      speakOpponent(persona.openingLine);
     }
     setPhase("live");
   }
@@ -224,9 +273,15 @@ export default function SessionPage() {
       if (!res.ok) throw new Error(data.error || "The opponent could not respond.");
 
       const replyStamp = formatElapsed(Date.now() - (startedAtRef.current || Date.now()));
-      const opponentMsg = { role: "opponent", text: data.reply, timestamp: replyStamp };
+      // Store/display the clean text (tags removed); speak the tagged version aloud.
+      const opponentMsg = {
+        role: "opponent",
+        text: stripEmotionTags(data.reply),
+        timestamp: replyStamp,
+      };
       convoRef.current = [...convoRef.current, opponentMsg];
       addMessage(opponentMsg);
+      speakOpponent(data.reply);
     } catch (err) {
       const errMsg = {
         role: "opponent",
@@ -238,7 +293,7 @@ export default function SessionPage() {
     } finally {
       setOpponentThinking(false);
     }
-  }, [draft, opponentThinking, config, persona, addMessage]);
+  }, [draft, opponentThinking, config, persona, addMessage, speakOpponent]);
 
   // Toggle the microphone on/off during the session.
   function handleToggleMic() {
@@ -253,6 +308,7 @@ export default function SessionPage() {
 
   // End the session and go to the debrief (which reads everything from context).
   function handleEnd() {
+    if (voiceRef.current) voiceRef.current.cancel();
     bio.stop();
     router.push("/debrief");
   }
@@ -336,6 +392,9 @@ export default function SessionPage() {
             onToggleDebug={() => setShowDebug((v) => !v)}
             onEnd={handleEnd}
             tellCount={tellCount}
+            voiceOn={voiceOn}
+            onToggleVoice={() => setVoiceOn((v) => !v)}
+            voiceSupported={isSpeechSynthesisSupported()}
           />
 
           <div className="mt-4 grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">

@@ -18,7 +18,11 @@ get a "game film" debrief showing every tell on a timeline.
    video or audio ever leaves your computer.**
 2. **AI opponent — Claude.** Every turn, the filtered tells are bundled into a JSON payload
    and sent (as text only) alongside the conversation to the Claude API. The opponent stays
-   in character and subtly presses on your weak moments.
+   in character and subtly presses on your weak moments. It also **speaks its replies aloud**
+   using the browser's built-in speech synthesis — Claude can wrap phrases in lightweight
+   emotion tags (`<anger>`, `<disbelief>`, `<emphasis>`, `<passion>`) that map to delivery
+   (rate/pitch/pause), and the opponent voice is pitched down and slowed so it's clearly not
+   you. Toggle it with the voice button in the session HUD.
 
 ---
 
