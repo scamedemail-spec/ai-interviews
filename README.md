@@ -7,6 +7,14 @@ get a "game film" debrief showing every tell on a timeline.
 
 > **Every other tool grades what you said. This one sees what you gave away.**
 
+### Try it live (one click)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fscamedemail-spec%2Fwill-stein-detailing&env=ANTHROPIC_API_KEY&envDescription=Claude%20API%20key%20for%20the%20AI%20opponent%20and%20coach%20notes&envLink=https%3A%2F%2Fconsole.anthropic.com%2Fsettings%2Fkeys&project-name=tell&repository-name=tell)
+
+Click the button, sign in with GitHub, paste your [Claude API key](https://console.anthropic.com/settings/keys)
+when prompted, and Vercel builds a live HTTPS URL in ~2 minutes. Open it in **Chrome or Edge**
+and allow camera + mic. (See [Deploying to Vercel](#deploying-to-vercel) for the manual path.)
+
 ---
 
 ## How it works (two layers)
@@ -90,11 +98,44 @@ src/
 | `ANTHROPIC_API_KEY` | for AI features | — | Your Claude API key (server-side only). |
 | `ANTHROPIC_MODEL` | no | `claude-sonnet-4-6` | Override the Claude model. |
 
-## Deploying
+## Deploying to Vercel
 
-This is a standard Next.js app and deploys cleanly to **Vercel**: import the repo, add
-`ANTHROPIC_API_KEY` as an environment variable, and deploy. The Anthropic free/low tiers
-plus Vercel's hobby tier keep this comfortably under a small monthly budget.
+This is a standard Next.js app (a `vercel.json` pins the framework) and deploys cleanly to
+Vercel's free **Hobby** tier. Two ways:
+
+### Option A — Import the GitHub repo (recommended)
+
+1. Go to **https://vercel.com/new** and sign in with GitHub.
+2. Click **Add New… → Project**, find **`will-stein-detailing`**, and click **Import**.
+   (If you don't see it, click *Adjust GitHub App Permissions* and grant access to the repo.)
+3. Vercel auto-detects Next.js — leave the build settings as-is (Build: `next build`,
+   Output: `.next`, Install: `npm install`).
+4. Expand **Environment Variables** and add your Claude key:
+   - Name: `ANTHROPIC_API_KEY` — Value: *your key from https://console.anthropic.com/*
+   - (Optional) `ANTHROPIC_MODEL` = `claude-sonnet-4-6`
+5. Click **Deploy**. In ~1–2 minutes you'll get a live `*.vercel.app` URL.
+
+Every push to `main` will auto-deploy after that.
+
+### Option B — Vercel CLI
+
+```bash
+npm i -g vercel
+vercel login
+vercel link                      # link to a Vercel project
+vercel env add ANTHROPIC_API_KEY # paste your key when prompted (choose Production)
+vercel --prod                    # build + deploy
+```
+
+### Notes for live testing
+- **Use Chrome or Edge** and open the deployed URL — the browser will prompt for camera +
+  mic. HTTPS (which Vercel provides) is required for `getUserMedia`, so the live site works
+  even where `http://localhost` would be restricted.
+- The app **deploys and runs without** `ANTHROPIC_API_KEY` (landing, setup, calibration,
+  biometric debug, local scoring all work); the AI opponent and coach notes just return a
+  friendly "key not set" message until the env var is added.
+- Costs stay well under a small monthly budget: Vercel Hobby is free, and Claude usage is
+  pay-as-you-go on Anthropic's low tiers.
 
 ## Privacy
 
