@@ -7,6 +7,14 @@ get a "game film" debrief showing every tell on a timeline.
 
 > **Every other tool grades what you said. This one sees what you gave away.**
 
+### Try it live (one click)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fscamedemail-spec%2Fwill-stein-detailing&env=ANTHROPIC_API_KEY&envDescription=Claude%20API%20key%20for%20the%20AI%20opponent%20and%20coach%20notes&envLink=https%3A%2F%2Fconsole.anthropic.com%2Fsettings%2Fkeys&project-name=tell&repository-name=tell)
+
+Click the button, sign in with GitHub, paste your [Claude API key](https://console.anthropic.com/settings/keys)
+when prompted, and Vercel builds a live HTTPS URL in ~2 minutes. Open it in **Chrome or Edge**
+and allow camera + mic. (See [Deploying to Vercel](#deploying-to-vercel) for the manual path.)
+
 ---
 
 ## How it works (two layers)
