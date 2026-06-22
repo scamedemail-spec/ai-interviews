@@ -1,48 +1,33 @@
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const DEFAULT_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const GROQ_BASE = "https://api.groq.com/openai/v1";
 
 export class MissingApiKeyError extends Error {
   constructor() {
-    super("GEMINI_API_KEY is not set. Add it in Vercel → Settings → Environment Variables.");
+    super("GROQ_API_KEY is not set. Add it in Vercel → Settings → Environment Variables.");
     this.name = "MissingApiKeyError";
   }
 }
 
 function getApiKey() {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey || apiKey.trim() === "") throw new MissingApiKeyError();
   return apiKey;
 }
 
 export async function callClaude({ system, messages, maxTokens = 1024, temperature = 0.8 }) {
   const apiKey = getApiKey();
-  const model = DEFAULT_MODEL;
-
-  // Convert OpenAI-style messages to Gemini contents format
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-
-  const body = {
-    contents,
-    systemInstruction: { parts: [{ text: system }] },
-    generationConfig: { maxOutputTokens: maxTokens, temperature },
-  };
-
-  const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${apiKey}`, {
+  const fullMessages = [{ role: "system", content: system }, ...messages];
+  const res = await fetch(`${GROQ_BASE}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: DEFAULT_MODEL, messages: fullMessages, max_tokens: maxTokens, temperature }),
   });
-
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${err}`);
+    throw new Error(`Groq API error ${res.status}: ${err}`);
   }
-
   const data = await res.json();
-  return (data.candidates?.[0]?.content?.parts?.[0]?.text ?? "").trim();
+  return (data.choices?.[0]?.message?.content ?? "").trim();
 }
 
 export async function callClaudeForJson(options) {
@@ -51,6 +36,6 @@ export async function callClaudeForJson(options) {
   try {
     return JSON.parse(cleaned);
   } catch (err) {
-    throw new Error("Gemini did not return valid JSON. Raw reply was:\n" + raw.slice(0, 500));
+    throw new Error("Groq did not return valid JSON. Raw reply was:\n" + raw.slice(0, 500));
   }
 }
